@@ -15,6 +15,7 @@ const AutoCompleteEditor = ({ onSendMessage }) => {  // Pass a prop for sending 
   const [matchString, setMatchString] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
+  const [currentText, setCurrentText] = useState('');
 
   const editorRef = useRef(null);
 
@@ -76,62 +77,71 @@ const AutoCompleteEditor = ({ onSendMessage }) => {  // Pass a prop for sending 
       suggestion.toLowerCase().startsWith(inputText.toLowerCase())
     );
     
-    const regex = /(\w+) ([#@<>])$/;
+    const regex = /([#@<])(\w*)$/;
     const match = inputText.match(regex);
 
-    /*
-    if(match){
-      
-      console.log("inputText: "+inputText.slice(-1))
-     
-      const word = match[match.length-1];
-    
-      // Filter suggestions based on the word typed before the trigger character
+    if (match) {
+      const trigger = match[1]; // The trigger character (#, @, <)
+      const word = match[2];    // The word after the trigger
+
+      // Update the current trigger and match string
+      setCurrentTrigger(trigger);
+      setMatchString(word);
+
+      // Filter suggestions based on the matched word
       const newSuggestions = suggestions.filter((suggestion) =>
-        suggestion.toLowerCase().startsWith(word.toLowerCase()) // Filter suggestions based on the matched word
+        suggestion.toLowerCase().startsWith(`${trigger}${word.toLowerCase()}`)
       );
 
       setFilteredSuggestions(newSuggestions);
       setShowSuggestions(newSuggestions.length > 0);
-
-    }
-    */
-
-    if (inputText) {
-      setFilteredSuggestions(newSuggestions);
-      setShowSuggestions(newSuggestions.length > 0); // Show suggestions only if there are matches
     } else {
-      setShowSuggestions(false); // Hide suggestions if there's no input
+      setShowSuggestions(false); // Hide suggestions if there's no match
     }
   };
   
   const handleReturn = (e) => {
-    if (showSuggestions && matchString) {
+    if (showSuggestions && filteredSuggestions.length > 0) {
       const selection = editorState.getSelection();
       const contentState = editorState.getCurrentContent();
       const block = contentState.getBlockForKey(selection.getStartKey());
       const text = block.getText();
       const cursorPosition = selection.getStartOffset();
-
+  
       const matchStart = text.lastIndexOf(currentTrigger, cursorPosition - 1);
-      const matchEnd = cursorPosition;
-
-      const newContentState = Modifier.replaceText(
-        contentState,
-        selection.merge({
-          anchorOffset: matchStart,
-          focusOffset: matchEnd,
-        }),
-        matchString
-      );
-
-      const newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
-      setEditorState(newEditorState);
-      setShowSuggestions(false);
-      return 'handled';
+  
+      if (matchStart !== -1) {
+        const matchEnd = cursorPosition;
+        const beforeMatch = text.slice(0, matchStart); // Text before the match
+        const afterMatch = text.slice(matchEnd); // Text after the match
+  
+        const newContentState = Modifier.replaceText(
+          contentState,
+          selection.merge({
+            anchorOffset: matchStart,
+            focusOffset: matchEnd,
+          }),
+          `${filteredSuggestions[highlightedIndex] || filteredSuggestions[0]}`
+        );
+  
+        const finalContentState = Modifier.insertText(
+          newContentState,
+          selection.merge({
+            anchorOffset: matchStart,
+            focusOffset: matchStart + filteredSuggestions[0].length,
+          }),
+          `${beforeMatch}${filteredSuggestions[0]}${afterMatch}`
+        );
+  
+        const newEditorState = EditorState.push(editorState, finalContentState, 'insert-characters');
+        setEditorState(newEditorState);
+        setShowSuggestions(false);
+        return 'handled';
+      }
     }
     return 'not-handled';
   };
+  
 
   const handleSuggestionClick = (suggestion) => {
     const selection = editorState.getSelection();
@@ -139,23 +149,41 @@ const AutoCompleteEditor = ({ onSendMessage }) => {  // Pass a prop for sending 
     const block = contentState.getBlockForKey(selection.getStartKey());
     const text = block.getText();
     const cursorPosition = selection.getStartOffset();
+  
+    // Find the start position of the current trigger
+    var matchStart = '';
 
-    const matchStart = text.lastIndexOf(currentTrigger, cursorPosition - text.length);
-    const matchEnd = cursorPosition;
-
-    const newContentState = Modifier.replaceText(
-      contentState,
-      selection.merge({
-        anchorOffset: matchStart,
-        focusOffset: matchEnd,
-      }),
-      suggestion
-    );
-
-    const newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
-    setEditorState(newEditorState);
-    setShowSuggestions(false);
+    if(text.length < 7){
+      matchStart = text.lastIndexOf(currentTrigger, cursorPosition - text.length);
+    }else{
+      matchStart = text.lastIndexOf(currentTrigger, cursorPosition - 1);
+    }
+    
+  
+    if (matchStart !== -1) {
+      const matchEnd = cursorPosition;
+  
+      // Replace the matched text (trigger + partial match) with the suggestion
+      const newContentState = Modifier.replaceText(
+        contentState,
+        selection.merge({
+          anchorOffset: matchStart,
+          focusOffset: matchEnd,
+        }),
+        suggestion
+      );
+  
+      // Push the new content state and move focus to the end
+      const newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
+      setEditorState(EditorState.moveFocusToEnd(newEditorState));
+      setShowSuggestions(false);
+      setCurrentTrigger('');
+      setMatchString('');
+    }
   };
+  
+  
+  
 
   const handleArrowKey = (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
@@ -174,6 +202,7 @@ const AutoCompleteEditor = ({ onSendMessage }) => {  // Pass a prop for sending 
     onSendMessage(content);
   };
 
+  
   return (
     <div className="RichEditor-root">
       <div className="RichEditor-editor" onClick={focus}>

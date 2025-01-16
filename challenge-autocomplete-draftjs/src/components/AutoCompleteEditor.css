@@ -2,7 +2,7 @@
 .RichEditor-root {
   background: #fff;
   border: 1px solid #ddd;
-  font-family: 'Georgia', serif;
+  font-family: "JetBrains Mono",monospace;
   font-size: 14px;
   padding: 15px;
 }
@@ -31,7 +31,7 @@
 .RichEditor-editor .RichEditor-blockquote {
   border-left: 5px solid #eee;
   color: #666;
-  font-family: 'Hoefler Text', 'Georgia', serif;
+  font-family: "JetBrains Mono",monospace;
   font-style: italic;
   margin: 16px 0;
   padding: 10px 20px;
@@ -39,14 +39,14 @@
 
 .RichEditor-editor .public-DraftStyleDefault-pre {
   background-color: rgba(0, 0, 0, 0.05);
-  font-family: 'Inconsolata', 'Menlo', 'Consolas', monospace;
+  font-family: "JetBrains Mono",monospace;
   font-size: 16px;
   padding: 20px;
 }
 
 /* Controls for Block and Inline Styles */
 .RichEditor-controls {
-  font-family: 'Helvetica', sans-serif;
+  font-family: "JetBrains Mono",monospace;
   font-size: 14px;
   margin-bottom: 5px;
   user-select: none;
@@ -114,7 +114,9 @@
 
 .autocomplete-suggestion:hover,
 .autocomplete-suggestion.highlighted {
-  background-color: #f0f0f0;
+  background-color: #4773ac;
+  color: #ebe5e5;
+  font-weight: bold;
 }
 
 .button-30 {
