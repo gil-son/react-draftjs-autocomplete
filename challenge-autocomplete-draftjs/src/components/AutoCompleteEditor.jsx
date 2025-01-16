@@ -1,16 +1,20 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Editor, EditorState, RichUtils, Modifier, getDefaultKeyBinding } from 'draft-js';
-import "./AutoCompleteEditor.css";
+import './AutoCompleteEditor.css';
 
 const triggerCharacters = ['#', '@', '<'];
+const suggestions = [
+  '#community', '#general', '#daily',
+  '<relation>', '@John', '@Maria', '@Lucy', '@Carlos', '@All',
+];
 
-const AutoCompleteEditor = () => {
+const AutoCompleteEditor = ({ onSendMessage }) => {  // Pass a prop for sending the message
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentTrigger, setCurrentTrigger] = useState('');
   const [matchString, setMatchString] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
-  
+  const [filteredSuggestions, setFilteredSuggestions] = useState([]);
 
   const editorRef = useRef(null);
 
@@ -63,66 +67,142 @@ const AutoCompleteEditor = () => {
     const block = contentState.getBlockForKey(selection.getStartKey());
     const text = block.getText();
     const cursorPosition = selection.getStartOffset();
+  
+    // Get the substring from the start of the block to the cursor position
+    const inputText = text.slice(0, cursorPosition);
+  
+    // Filter suggestions based on the current inputText
+    const newSuggestions = suggestions.filter((suggestion) =>
+      suggestion.toLowerCase().startsWith(inputText.toLowerCase())
+    );
+    
+    const regex = /(\w+) ([#@<>])$/;
+    const match = inputText.match(regex);
 
-    // Check for trigger character
-    for (let trigger of triggerCharacters) {
-      if (text[cursorPosition - 1] === trigger) {
-        setCurrentTrigger(trigger);
-        setShowSuggestions(true);
-        break;
-      } else {
-        setShowSuggestions(false);
-      }
+    /*
+    if(match){
+      
+      console.log("inputText: "+inputText.slice(-1))
+     
+      const word = match[match.length-1];
+    
+      // Filter suggestions based on the word typed before the trigger character
+      const newSuggestions = suggestions.filter((suggestion) =>
+        suggestion.toLowerCase().startsWith(word.toLowerCase()) // Filter suggestions based on the matched word
+      );
+
+      setFilteredSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0);
+
     }
+    */
 
-    // Extract the match string
-    if (showSuggestions && cursorPosition > 0) {
-      const matchStart = text.lastIndexOf(currentTrigger, cursorPosition - 1) + 1;
-      const matchSubstring = text.slice(matchStart, cursorPosition);
-      setMatchString(matchSubstring);
+    if (inputText) {
+      setFilteredSuggestions(newSuggestions);
+      setShowSuggestions(newSuggestions.length > 0); // Show suggestions only if there are matches
+    } else {
+      setShowSuggestions(false); // Hide suggestions if there's no input
     }
   };
-
+  
   const handleReturn = (e) => {
     if (showSuggestions && matchString) {
+      const selection = editorState.getSelection();
+      const contentState = editorState.getCurrentContent();
+      const block = contentState.getBlockForKey(selection.getStartKey());
+      const text = block.getText();
+      const cursorPosition = selection.getStartOffset();
+
+      const matchStart = text.lastIndexOf(currentTrigger, cursorPosition - 1);
+      const matchEnd = cursorPosition;
+
       const newContentState = Modifier.replaceText(
-        editorState.getCurrentContent(),
-        editorState.getSelection(),
+        contentState,
+        selection.merge({
+          anchorOffset: matchStart,
+          focusOffset: matchEnd,
+        }),
         matchString
       );
+
       const newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
       setEditorState(newEditorState);
-      setShowSuggestions(false); // Hide suggestions after completing
+      setShowSuggestions(false);
+      return 'handled';
     }
-    return 'handled';
+    return 'not-handled';
   };
 
   const handleSuggestionClick = (suggestion) => {
+    const selection = editorState.getSelection();
+    const contentState = editorState.getCurrentContent();
+    const block = contentState.getBlockForKey(selection.getStartKey());
+    const text = block.getText();
+    const cursorPosition = selection.getStartOffset();
+
+    const matchStart = text.lastIndexOf(currentTrigger, cursorPosition - text.length);
+    const matchEnd = cursorPosition;
+
     const newContentState = Modifier.replaceText(
-      editorState.getCurrentContent(),
-      editorState.getSelection(),
+      contentState,
+      selection.merge({
+        anchorOffset: matchStart,
+        focusOffset: matchEnd,
+      }),
       suggestion
     );
+
     const newEditorState = EditorState.push(editorState, newContentState, 'insert-characters');
     setEditorState(newEditorState);
-    setShowSuggestions(false); // Hide suggestions after selecting
+    setShowSuggestions(false);
   };
 
   const handleArrowKey = (e) => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
       e.preventDefault();
       const newIndex = e.key === 'ArrowDown'
-        ? (highlightedIndex + 1) % suggestions.length
-        : (highlightedIndex - 1 + suggestions.length) % suggestions.length;
+        ? (highlightedIndex + 1) % filteredSuggestions.length
+        : (highlightedIndex - 1 + filteredSuggestions.length) % filteredSuggestions.length;
       setHighlightedIndex(newIndex);
     }
   };
 
-  const suggestions = ['#react', '#javascript', '@john', '@alice', '<related>'];
+  const handleSendMessage = () => {
+    // Get the current content of the editor
+    const content = editorState.getCurrentContent().getPlainText();
+    // Pass the content to the parent component
+    onSendMessage(content);
+  };
 
   return (
-    <div>
-      <div className="RichEditor-root">
+    <div className="RichEditor-root">
+      <div className="RichEditor-editor" onClick={focus}>
+        <Editor
+          editorState={editorState}
+          handleKeyCommand={handleKeyCommand}
+          keyBindingFn={mapKeyToEditorCommand}
+          onChange={handleChange}
+          handleReturn={handleReturn}
+          placeholder="Type here..."
+          ref={editorRef}
+          spellCheck={true}
+          onKeyDown={handleArrowKey}
+        />
+      </div>
+      {showSuggestions && (
+        <div className="autocomplete-suggestions">
+          {filteredSuggestions.map((suggestion, index) => (
+            <div
+              key={index}
+              className={`autocomplete-suggestion ${highlightedIndex === index ? 'highlighted' : ''}`}
+              onClick={() => handleSuggestionClick(suggestion)}
+            >
+              {suggestion}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="RichEditor-controls">
         <BlockStyleControls
           editorState={editorState}
           onToggle={toggleBlockType}
@@ -131,70 +211,11 @@ const AutoCompleteEditor = () => {
           editorState={editorState}
           onToggle={toggleInlineStyle}
         />
-        <div className="RichEditor-editor" onClick={focus}>
-          <Editor
-            blockStyleFn={getBlockStyle}
-            customStyleMap={styleMap}
-            editorState={editorState}
-            handleKeyCommand={handleKeyCommand}
-            keyBindingFn={mapKeyToEditorCommand}
-            onChange={handleChange}
-            handleReturn={handleReturn}
-            placeholder="Tell a story..."
-            ref={editorRef}  // Use editorRef to attach to the editor
-            spellCheck={true}
-            onKeyDown={handleArrowKey}
-          />
-        </div>
-        {showSuggestions && (
-          <div className="autocomplete-suggestions">
-            {suggestions
-              .filter((suggestion) => suggestion.includes(matchString))
-              .map((suggestion, index) => (
-                <div
-                  key={index}
-                  className={`autocomplete-suggestion ${highlightedIndex === index ? 'highlighted' : ''}`}
-                  onClick={() => handleSuggestionClick(suggestion)}
-                >
-                  {suggestion}
-                </div>
-              ))}
-          </div>
-        )}
       </div>
+      <button className="button-30" role="button" onClick={handleSendMessage}>Send Message</button> {/* Send Button */}
     </div>
   );
 };
-
-// Custom overrides for "code" style.
-const styleMap = {
-  CODE: {
-    backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    fontFamily: '"Inconsolata", "Menlo", "Consolas", monospace',
-    fontSize: 16,
-    padding: 2,
-  },
-};
-
-function getBlockStyle(block) {
-  switch (block.getType()) {
-    case 'blockquote': return 'RichEditor-blockquote';
-    default: return null;
-  }
-}
-
-const BLOCK_TYPES = [
-  { label: 'H1', style: 'header-one' },
-  { label: 'H2', style: 'header-two' },
-  { label: 'H3', style: 'header-three' },
-  { label: 'H4', style: 'header-four' },
-  { label: 'H5', style: 'header-five' },
-  { label: 'H6', style: 'header-six' },
-  { label: 'Blockquote', style: 'blockquote' },
-  { label: 'UL', style: 'unordered-list-item' },
-  { label: 'OL', style: 'ordered-list-item' },
-  { label: 'Code Block', style: 'code-block' },
-];
 
 const BlockStyleControls = ({ editorState, onToggle }) => {
   const selection = editorState.getSelection();
@@ -255,5 +276,18 @@ const StyleButton = ({ active, label, onToggle, style }) => {
     </span>
   );
 };
+
+const BLOCK_TYPES = [
+  { label: 'H1', style: 'header-one' },
+  { label: 'H2', style: 'header-two' },
+  { label: 'H3', style: 'header-three' },
+  { label: 'H4', style: 'header-four' },
+  { label: 'H5', style: 'header-five' },
+  { label: 'H6', style: 'header-six' },
+  { label: 'Blockquote', style: 'blockquote' },
+  { label: 'UL', style: 'unordered-list-item' },
+  { label: 'OL', style: 'ordered-list-item' },
+  { label: 'Code Block', style: 'code-block' },
+];
 
 export default AutoCompleteEditor;

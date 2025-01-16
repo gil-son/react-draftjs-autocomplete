@@ -1,63 +1,154 @@
+/* General Editor Styles */
 .RichEditor-root {
-    background: #fff;
-    border: 1px solid #ddd;
-    font-family: 'Georgia', serif;
-    font-size: 14px;
-    padding: 15px;
+  background: #fff;
+  border: 1px solid #ddd;
+  font-family: 'Georgia', serif;
+  font-size: 14px;
+  padding: 15px;
+}
+
+.RichEditor-editor {
+  border-top: 1px solid #ddd;
+  cursor: text;
+  font-size: 16px;
+  margin-top: 10px;
+}
+
+.RichEditor-editor .public-DraftEditorPlaceholder-root,
+.RichEditor-editor .public-DraftEditor-content {
+  margin: 0 -15px -15px;
+  padding: 15px;
+}
+
+.RichEditor-editor .public-DraftEditor-content {
+  min-height: 100px;
+}
+
+.RichEditor-hidePlaceholder .public-DraftEditorPlaceholder-root {
+  display: none;
+}
+
+.RichEditor-editor .RichEditor-blockquote {
+  border-left: 5px solid #eee;
+  color: #666;
+  font-family: 'Hoefler Text', 'Georgia', serif;
+  font-style: italic;
+  margin: 16px 0;
+  padding: 10px 20px;
+}
+
+.RichEditor-editor .public-DraftStyleDefault-pre {
+  background-color: rgba(0, 0, 0, 0.05);
+  font-family: 'Inconsolata', 'Menlo', 'Consolas', monospace;
+  font-size: 16px;
+  padding: 20px;
+}
+
+/* Controls for Block and Inline Styles */
+.RichEditor-controls {
+  font-family: 'Helvetica', sans-serif;
+  font-size: 14px;
+  margin-bottom: 5px;
+  user-select: none;
+}
+
+.RichEditor-styleButton {
+  color: #999;
+  cursor: pointer;
+  margin-right: 16px;
+  padding: 2px 0;
+  display: inline-block;
+}
+
+.RichEditor-activeButton {
+  color: #5890ff;
+}
+
+/* Autocomplete Suggestions */
+.autocomplete-suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 10;
+  width: 200px;
+}
+
+.autocomplete-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.highlighted {
+  background: #f0f0f0;
+}
+
+/* Custom Classes for Rich Editor Buttons */
+.RichEditor-styleButton,
+.RichEditor-activeButton {
+  color: #999;
+}
+
+.RichEditor-styleButton:hover {
+  color: #5890ff;
+}
+
+/* Suggestions Dropdown */
+.autocomplete-suggestions {
+  position: absolute;
+  background: white;
+  border: 1px solid #ddd;
+  max-height: 150px;
+  overflow-y: auto;
+  z-index: 9999;
+  width: 200px;
+  margin-top: 5px;
+}
+
+.autocomplete-suggestion {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.highlighted {
+  background-color: #f0f0f0;
+}
+
+.button-30 {
+  align-items: center;appearance: none;
+  background-color: #FCFCFD;
+  border-radius: 4px;border-width: 0;
+  box-shadow: rgba(45, 35, 66, 0.4) 0 2px 4px,rgba(45, 35, 66, 0.3) 0 7px 13px -3px,#D6D6E7 0 -3px 0 inset;
+  box-sizing: border-box;
+  color: #36395A;cursor: pointer;display: inline-flex;font-family: "JetBrains Mono",monospace;
+  height: 48px;justify-content: center;
+  line-height: 1;
+  list-style: none;
+  overflow: hidden;
+  padding-left: 16px;
+  padding-right: 16px;
+  position: relative;
+  text-align: left;
+  text-decoration: none;
+  transition: box-shadow .15s,transform .15s;
+  user-select: none;
+  -webkit-user-select: none;touch-action: manipulation;
+  white-space: nowrap;
+  will-change: box-shadow,transform;font-size: 18px;
+}
+  
+  
+  .button-30:focus {
+    box-shadow: #D6D6E7 0 0 0 1.5px inset, rgba(45, 35, 66, 0.4) 0 2px 4px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
   }
   
-  .RichEditor-editor {
-    border-top: 1px solid #ddd;
-    cursor: text;
-    font-size: 16px;
-    margin-top: 10px;
+  .button-30:hover {
+    box-shadow: rgba(45, 35, 66, 0.4) 0 4px 8px, rgba(45, 35, 66, 0.3) 0 7px 13px -3px, #D6D6E7 0 -3px 0 inset;
+    transform: translateY(-2px);
   }
   
-  .RichEditor-editor .public-DraftEditorPlaceholder-root,
-  .RichEditor-editor .public-DraftEditor-content {
-    margin: 0 -15px -15px;
-    padding: 15px;
-  }
-  
-  .RichEditor-editor .public-DraftEditor-content {
-    min-height: 100px;
-  }
-  
-  .RichEditor-hidePlaceholder .public-DraftEditorPlaceholder-root {
-    display: none;
-  }
-  
-  .RichEditor-editor .RichEditor-blockquote {
-    border-left: 5px solid #eee;
-    color: #666;
-    font-family: 'Hoefler Text', 'Georgia', serif;
-    font-style: italic;
-    margin: 16px 0;
-    padding: 10px 20px;
-  }
-  
-  .RichEditor-editor .public-DraftStyleDefault-pre {
-    background-color: rgba(0, 0, 0, 0.05);
-    font-family: 'Inconsolata', 'Menlo', 'Consolas', monospace;
-    font-size: 16px;
-    padding: 20px;
-  }
-  
-  .RichEditor-controls {
-    font-family: 'Helvetica', sans-serif;
-    font-size: 14px;
-    margin-bottom: 5px;
-    user-select: none;
-  }
-  
-  .RichEditor-styleButton {
-    color: #999;
-    cursor: pointer;
-    margin-right: 16px;
-    padding: 2px 0;
-    display: inline-block;
-  }
-  
-  .RichEditor-activeButton {
-    color: #5890ff;
-  }
+  .button-30:active {
+    box-shadow: #D6D6E7 0 3px 7px inset;transform: translateY(2px);}
