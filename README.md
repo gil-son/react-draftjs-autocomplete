@@ -43,6 +43,11 @@ npm start
 
 
 <div align="center">
+  <img src="https://s7.gifyu.com/images/SesZu.gif">
+</div>
+<hr/>
+<div align="center">
   <img src="https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExaGN1NHE3bHg4aDF5eHB3OWRkMDlnY2w5eGF2N2R4MjBwcWlsNDE5MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/1vuUlNng71iIt3ZAcC/giphy.gif">
 </div>
+
 
