@@ -2,20 +2,18 @@ import React, { useState, useCallback, useRef } from 'react';
 import { Editor, EditorState, RichUtils, Modifier, getDefaultKeyBinding } from 'draft-js';
 import './AutoCompleteEditor.css';
 
-const triggerCharacters = ['#', '@', '<'];
 const suggestions = [
   '#community', '#general', '#daily',
   '<relation>', '@John', '@Maria', '@Lucy', '@Carlos', '@All',
 ];
 
-const AutoCompleteEditor = ({ onSendMessage }) => {  // Pass a prop for sending the message
+const AutoCompleteEditor = ({ onSendMessage }) => {
   const [editorState, setEditorState] = useState(EditorState.createEmpty());
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [currentTrigger, setCurrentTrigger] = useState('');
   const [matchString, setMatchString] = useState('');
   const [highlightedIndex, setHighlightedIndex] = useState(-1);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
-  const [currentText, setCurrentText] = useState('');
 
   const editorRef = useRef(null);
 
