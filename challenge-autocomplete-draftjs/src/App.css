@@ -2,4 +2,10 @@
   text-align: center;
 }
 
+.sending-message{
+  background-color: rgba(0, 0, 0, 0.05);
+  font-family: "JetBrains Mono",monospace;
+  font-size: 16px;
+  padding: 20px;
+}
 
